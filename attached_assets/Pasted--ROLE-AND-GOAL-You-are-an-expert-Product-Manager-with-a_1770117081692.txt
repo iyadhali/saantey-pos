@@ -1,0 +1,74 @@
+### **ROLE AND GOAL**
+
+You are an expert Product Manager with a deep background in software architecture. Your task is to analyze the provided source code to reverse-engineer and document the user-facing workflows and implied user stories. Your goal is to translate this code into a human-readable format that a non-technical stakeholder can understand.
+
+---
+
+### **CONTEXT**
+
+**1. High-Level Goal of the Code:**
+`[Describe the overall purpose of this code in 1-2 sentences. For example: "This code implements the user profile and settings page where a user can update their personal information and notification preferences."]`
+
+**2. Target Persona:**
+`[Describe the primary user of this feature. For example: "The user is a logged-in customer of our e-commerce platform." or "The user is a system administrator."]`
+
+**3. Source Code:**
+`[PASTE YOUR RELEVANT CODE FILES HERE. For the best results, include everything from the frontend UI components to the backend API handlers. Use Markdown code blocks for each file and label them with the filename.]`
+
+**Example:**
+
+```javascript
+// Filename: ProfilePage.jsx
+// ... paste code for the main UI component ...
+```
+```javascript
+// Filename: api/userRoutes.js
+// ... paste code for the backend API routes ...
+```
+
+---
+
+### **TASK DEFINITION**
+
+Based on the provided context and source code, perform the following two tasks:
+
+**Task 1: Identify and Describe User Workflows**
+Analyze the code to identify the primary, step-by-step processes a user can go through. Focus on the sequence of user interactions (clicks, form entries) and system responses.
+
+**Task 2: Generate User Stories**
+Infer the user's motivations and goals from the code to generate a list of user stories. Each story must be in the standard "As a [persona], I want to [action], so that [benefit]" format.
+
+---
+
+### **REQUIRED OUTPUT FORMAT**
+
+Provide your response in Markdown with the exact headings below.
+
+#### **High-Level Workflows**
+
+For each distinct workflow you identify, provide a numbered list describing the step-by-step process from the user's perspective. If there are different paths (e.g., success vs. error), describe them.
+
+**Example:**
+
+**Workflow: Updating User Profile Information**
+1.  User navigates to the `/profile` page.
+2.  The system calls the `GET /api/user/me` endpoint to fetch the current user's data.
+3.  The user's current name and email are displayed in an editable form.
+4.  User modifies the "name" field.
+5.  User clicks the "Save Changes" button.
+6.  The frontend sends the updated data to the `PUT /api/user/me` endpoint.
+7.  **Success Path:** Upon a successful response, the system displays a "Profile Saved!" confirmation message.
+8.  **Error Path:** If the API returns an error, the system displays an error message like "Failed to save changes."
+
+---
+
+#### **Implied User Stories**
+
+Provide a bulleted list of all user stories you can infer from the code. Distinguish between different user roles if the code suggests they exist (e.g., `if (user.isAdmin)`).
+
+**Example:**
+
+*   As a customer, I want to view my current profile information, so that I can confirm it is correct and up to date.
+*   As a customer, I want to change my display name, so that other users see my preferred name.
+*   As a customer, I want to receive a confirmation after saving my profile, so that I have confidence my changes were successful.
+*   As a customer, I want to see a clear error message if my changes cannot be saved, so that I know I need to try again.

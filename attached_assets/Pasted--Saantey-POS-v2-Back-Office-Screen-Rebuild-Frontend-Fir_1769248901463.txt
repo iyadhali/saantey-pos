@@ -1,0 +1,445 @@
+# Saantey POS v2 — Back Office Screen Rebuild (Frontend-First Design Doc for Codex)
+**Focus:** UI/UX best practices + Minimalist design + Fitts’s Law + WCAG 2.2 AA  
+**Scope:** Recreate + improve legacy Back Office screens (Purchasing + Inventory & Prep) using the **v2 unified data model**, with a **frontend-first** spec Codex can follow.
+
+---
+
+## 0) Product intent (what “better” means)
+
+We’re rebuilding a Back Office system that operators can use **fast**, **accurately**, and **all day** without fatigue.
+
+### UX success criteria (measurable)
+- **Time to key actions**
+  - Open invoices list → open invoice → finalize: **< 15s** for practiced users
+  - Start weekly inventory count batch: **< 10s**
+  - Add waste entry: **< 8s**
+- **Error rate**
+  - Accidental “Finalize/Reject/Delete” actions: **near-zero** via guardrails
+- **Accessibility**
+  - Keyboard-only completion of all critical workflows
+  - Meets **WCAG 2.2 AA** contrast + focus + labels + error announce
+- **Cognitive load**
+  - One primary action per screen; advanced settings hidden unless needed
+
+---
+
+## 1) UI/UX principles to enforce everywhere
+
+### 1.1 Minimalist, operator-grade UI
+- **Clarity over decoration**: whitespace, clear hierarchy, no “visual noise”
+- **Progressive disclosure**: show essentials first, advanced filters under “More filters”
+- **Consistent layout**: same page template across lists/details
+- **Fewer competing actions**: avoid right-side “action stacks”; use a top action bar
+
+### 1.2 Fitts’s Law (fastest interactions)
+Apply these rules systematically:
+- Put the **primary action** on each screen in a **consistent location** (top-right in page header/action bar).
+- Put high-frequency actions where the cursor naturally lands:
+  - Lists: primary action top-right; row actions in an inline kebab menu at row end.
+  - Detail screens: primary CTA (e.g., “Finalize”) top-right in action bar.
+- Use **edges and corners**:
+  - “Save”, “Finalize”, “Create” anchored in the header (easy target).
+- Make targets big:
+  - Minimum interactive target: **44×44px** (touch) and generous padding for mouse.
+- Don’t cluster destructive actions next to primary:
+  - “Reject/Delete” separated (danger menu) to avoid slips.
+
+### 1.3 Accessibility (WCAG 2.2 AA baked into components)
+- Contrast: normal text **≥ 4.5:1**, large text **≥ 3:1**
+- Focus visible: clear focus rings on all controls and row actions
+- No color-only meaning: status = **badge text + icon**
+- Forms: every control has a visible label (or visually-hidden label but screen-reader present)
+- Errors: field-level + summary; announced via `aria-live`
+- Tables: real `<th>`, proper scope, sortable headers announce state
+- Modals: focus trap, ESC closes (except critical confirm), return focus on close
+
+---
+
+## 2) Layout system (frontend spec)
+
+### 2.1 Shell
+- **Left sidebar**: module navigation
+- **Top bar**:
+  - Location/site switcher (always visible)
+  - “Last updated/sync” indicator
+  - User menu
+
+### 2.2 Page template (consistent everywhere)
+**PageHeader**
+- Title (H1)
+- Subtitle/meta: location, date range, status context
+- Right-side **ActionBar** (primary action + secondary actions + overflow menu)
+
+**Content**
+- FiltersBar (for list pages)
+- Main region (table or form)
+- Optional side panel (read-only summary, not actions)
+
+### 2.3 Density modes (operator preference)
+- Default: “Comfortable”
+- Toggle: “Compact” (denser rows for power users)
+- Tables must support both without breaking accessibility or touch targets.
+
+---
+
+## 3) Component design system (minimal + reusable)
+
+### 3.1 Buttons (standardized)
+- **Primary**: one per screen (Create, Finalize, Submit)
+- **Secondary**: safe actions (Save draft, Export)
+- **Danger**: destructive actions behind confirm (Reject, Delete)
+- **IconButton**: requires `aria-label`, tooltip, 44×44px target
+
+### 3.2 Inputs
+- TextField / SearchField (debounced)
+- Select (searchable for large datasets)
+- DateRangePicker (with clear “Apply”)
+- NumericField (with unit hint + stepper optional)
+- Textarea
+- RadioGroup / Checkbox (never unlabeled)
+
+### 3.3 DataTable (the core UI component)
+Must support:
+- Sticky header
+- Sorting, pagination, column chooser
+- Row actions menu (kebab) with keyboard support
+- “Empty state” with guidance
+- Inline badges (status)
+- Bulk selection + bulk actions (optional, only where useful)
+- Quick filter chips (Open, Needs Receiving, Unfinalized)
+
+### 3.4 Status badges (no color-only meaning)
+Examples:
+- Draft, Sent, Partially Received, Converted
+- Draft, Pending, Finalized, Rejected
+Badge must include:
+- Text label
+- Icon
+- Optional tooltip (definition)
+
+### 3.5 Confirm patterns (error prevention)
+- “Finalize”, “Reject”, “Delete” always require:
+  - Confirm modal with clear consequences
+  - Secondary confirmation for irreversible steps (optional) only where truly high risk
+- Prefer “Undo” toast for reversible actions (e.g., removing a line before finalize)
+
+---
+
+## 4) Screen-by-screen UI specs (improved legacy screens)
+
+> Each screen below includes **Minimalist layout**, **Fitts’s placement**, and **Accessibility rules**.
+
+---
+
+### 4.1 Main Window (Module launcher)
+**Route:** `/`  
+**Goal:** fast navigation; minimal clutter
+
+**Layout**
+- Tiles: Purchasing, Inventory & Prep, Reports, Settings
+- Each tile shows 1–2 key counters (e.g., “3 Unfinalized invoices”)
+
+**Fitts’s Law**
+- Tiles are large click targets; consistent grid
+- First tile gets focus by default for keyboard users
+
+**A11y**
+- Tiles are buttons with accessible name + description
+
+---
+
+### 4.2 Purchasing Home
+**Route:** `/purchasing`  
+**Layout**
+- Minimal tile list + “Quick actions” bar:
+  - Primary: **New PO**
+  - Secondary: New Invoice, Import Invoice, New Vendor
+
+**Fitts**
+- Primary action top-right (New PO) + optional “N” hotkey
+
+---
+
+### 4.3 Orders List (PO list)
+**Route:** `/purchasing/orders`
+
+**UI**
+- PageHeader: “Purchase Orders”
+- ActionBar:
+  - Primary: **New PO**
+  - Secondary: Export
+  - Overflow: Bulk mark sent, Settings
+
+**FiltersBar**
+- Search (PO ID/vendor)
+- Date range
+- Status dropdown
+- “More filters” (vendor, delivery date, created by)
+- Quick chips: Open, Needs Receiving, Sent
+
+**Table columns**
+- PO ID | Vendor | Order Date | Delivery Date | Status | Sent At | Notes
+
+**Fitts**
+- Primary action top-right
+- Row actions at far right, same place each row (muscle memory)
+
+**A11y**
+- Sort headers announce state
+- Status badge includes text
+
+---
+
+### 4.4 Convert PO → Invoice (Receive)
+**Route:** `/purchasing/orders/:poId/receive`
+
+**Minimalist flow (3-step)**
+1) Header confirmation (invoice number/date/delivered)
+2) Line receiving (received qty defaults to ordered)
+3) Review totals + Create Draft Invoice
+
+**Fitts**
+- Primary: **Create Draft Invoice** fixed in top-right action bar
+- Secondary: Save as Pending, Cancel
+
+**Error prevention**
+- Highlight qty mismatches with inline warnings
+- Require reason for large discrepancies (threshold configurable)
+
+**A11y**
+- Numeric fields: unit hints via `aria-describedby`
+- Warnings announced via `aria-live`
+
+---
+
+### 4.5 Invoices List
+**Route:** `/purchasing/invoices`
+
+**Layout**
+- ActionBar:
+  - Primary: **New Invoice**
+  - Secondary: Import
+  - Overflow: Show Pending Imports, Export
+
+**Filters**
+- Search invoice ID/vendor
+- Date range
+- Status (Draft/Pending/Finalized/Rejected)
+- Chip filters: Unfinalized, Finalized today
+
+**Table**
+- Invoice ID | Vendor | Invoice Date | Delivered At | Total | Status | Updated At
+
+**Fitts**
+- Primary top-right
+- Status filter is one click away
+
+**A11y**
+- Reject is not a checkbox in table; it’s an action with confirm
+
+---
+
+### 4.6 Invoice Detail
+**Route:** `/purchasing/invoices/:invoiceId`
+
+**Layout**
+- Header: Invoice ID + status badge
+- ActionBar:
+  - Primary: **Finalize**
+  - Secondary: Save Draft
+  - Overflow: Reject, Credit Memo, Print/Export
+
+**Content**
+- Header panel (vendor, dates, references)
+- Lines DataTable (editable in Draft/Pending only)
+- Totals panel (sticky right) — **read-only**, not an action column
+
+**Minimalism rule**
+- No giant right-side action column. Actions live in top action bar only.
+
+**Fitts**
+- Finalize always top-right
+- Reject always in “Danger” submenu (consistent, reduces slips)
+
+**A11y**
+- Locked state (Finalized) clearly indicated and announced
+- Inline validation + error summary
+
+---
+
+### 4.7 Vendor List
+**Route:** `/purchasing/vendors`
+
+**Layout**
+- ActionBar:
+  - Primary: **New Vendor**
+  - Secondary: Export
+- Filters: search + status (Active/Excluded)
+
+**Table**
+- Vendor | Vendor ID | City | Status | Primary Contact | Last Order
+
+**A11y**
+- “Excluded” displayed as status badge (not hidden filter)
+
+---
+
+### 4.8 Vendor Detail (Tabs)
+**Route:** `/purchasing/vendors/:vendorId`
+
+**Tabs (minimal + logical)**
+1) Profile
+2) Ordering Schedule
+3) E-Ordering
+4) Invoice Rules
+5) Custom Fields (optional)
+
+**Fitts**
+- Save button fixed in header action bar (not inside each tab)
+- “Exclude vendor” is a deliberate action with confirm + reason (optional)
+
+**A11y**
+- Tabs use proper roles + keyboard arrow navigation
+- Grouped controls in fieldsets with legends
+
+---
+
+### 4.9 Inventory Home
+**Route:** `/inventory`
+
+**Action bar**
+- Primary: **Start Count**
+- Secondary: Add Waste
+
+---
+
+### 4.10 Item Lookup
+**Route:** `/inventory/items`
+
+**Layout**
+- ActionBar:
+  - Primary: **New Item** (optional; permission-gated)
+  - Secondary: Manage Par Levels
+
+**Table**
+- Item | Category | Item ID | Type | Active | (optional) On-hand | Par
+
+**Minimalism**
+- Avoid multiple toggles in list rows; use detail screen for edits
+
+---
+
+### 4.11 Inventory Posting Wizard (Daily/Weekly/Monthly)
+**Route:** `/inventory/posting`
+
+**UI pattern**
+- Stepper wizard (3 steps max):
+  1) Cadence
+  2) Period selector
+  3) Locations + start
+
+**Fitts**
+- Primary: **Start Count Batch** anchored top-right
+
+**A11y**
+- Stepper is keyboard navigable
+
+---
+
+### 4.12 Count Entry (by location)
+**Route:** `/inventory/posting/:batchId`
+
+**Layout**
+- Left panel: location selector + progress
+- Main: editable table with single UOM per row (expandable for multi-UOM)
+
+**Inline editing best practices**
+- Arrow keys move cell-to-cell
+- Enter toggles edit
+- Autosave with non-intrusive “Saved” indicator
+
+**Fitts**
+- “Submit Count” top-right (primary)
+- “Save Draft” secondary
+
+**A11y**
+- Editable grid supports keyboard properly
+- Strong focus indicators for current cell
+
+---
+
+### 4.13 Waste Entry
+**Route:** `/inventory/waste`
+
+**Form**
+- Item, UOM, qty, reason, time
+- Read-only previews: on-hand, unit cost
+- Log table below
+
+**Fitts**
+- Primary: **Add Waste Entry** near form bottom-right (large target)
+- Secondary: Post batch (if used)
+
+**A11y**
+- Required fields marked in label, errors announced
+
+---
+
+## 5) Frontend architecture decisions (Codex guidance)
+
+### State + data fetching (fast + predictable)
+- Query caching (stale-while-revalidate)
+- Debounced search inputs (250–400ms)
+- Optimistic updates only for safe operations (draft saves), not for finalize/reject
+- Bulk updates via batch endpoints (inventory counts)
+
+### Form validation
+- Client: immediate field validation
+- Server: authoritative validation with structured error responses
+- Show errors:
+  - Inline at field
+  - Summary at top for screen readers
+
+### Performance requirements
+- Large tables: virtualization if > 200 rows
+- Avoid full rerenders on every keystroke in editable grids
+- Keep filters sticky; preserve filter state in URL query params
+
+---
+
+## 6) Visual style (minimalist token set)
+
+### Color
+- Neutral grayscale base
+- 1 primary brand color (buttons/links/focus)
+- Status colors used sparingly; never the only signal
+
+### Typography
+- 3 sizes max used heavily: 12/14/18 (titles can be 24)
+
+### Spacing
+- 8px scale; avoid dense “boxed” layouts
+
+---
+
+## 7) Frontend acceptance checklist (must pass)
+- [ ] Primary actions always in top-right action bar (consistent)
+- [ ] No action stacks in sidebars
+- [ ] Every destructive action requires confirm and is separated from primary
+- [ ] Keyboard-only completion of all workflows
+- [ ] WCAG AA contrast + focus + labels + error announcements
+- [ ] Tables readable and scannable (status badges, alignment, spacing)
+- [ ] Minimalist: no redundant panels, no duplicate actions in multiple places
+
+---
+
+## 8) Deliverables Codex should output
+1) Route scaffolding + AppShell + navigation
+2) Component library:
+   - DataTable, FiltersBar, PageHeader, ActionBar, ModalConfirm, Toast
+3) Screens:
+   - Purchasing: Orders List, Convert/Receive, Invoices List, Invoice Detail, Vendors List, Vendor Detail Tabs
+   - Inventory: Item Lookup, Posting Wizard, Count Entry, Waste
+4) A11y test checklist + keyboard flows documented per screen
+
+---

@@ -1,0 +1,131 @@
+Purchase Orders (PO) (updated)
+
+Requirements (changes):
+
+Financials:
+
+Calculate Line Totals and Subtotal (still no tax on PO).
+
+Add PO summary: Subtotal only (tax is applied at invoice stage).
+
+Actions (additions):
+
+Create Invoice (from PO)
+
+View, Duplicate, Delete Order
+
+Workflow: Creating a Purchase Order (same as v2.1, unchanged)
+System Action (add):
+
+Save PO with status Open.
+
+Track Remaining Qty per line for invoicing (initially = ordered qty).
+
+Edge Cases (additions):
+
+Invoiced/Closed PO: If a PO is fully invoiced/closed, “Create Invoice” is disabled.
+
+Partial invoicing: PO may be invoiced across multiple invoices (e.g., split deliveries/billing).
+
+C. Invoices (PO-Based Invoicing + GST) (rewritten)
+Requirements
+
+Invoice List:
+
+Filter by Date Range
+
+Columns: Invoice No, Vendor, PO Number, Invoice Date, Due Date, Status, Subtotal, GST, Total
+
+Invoice Creation Mode (new rule):
+
+Invoices are created from a PO (PO is the primary reference).
+
+This is consistent with “billing a purchase order” and “PO-based invoice verification” flows.
+
+“Manual invoice without PO” is not in MVP (can be Phase 2 as “Non-PO Invoice”).
+
+PO Linking:
+
+Required: PO Number must be selected to create an invoice.
+
+Vendor auto-populates from PO and becomes read-only.
+
+Line Items (auto-populated):
+
+System copies PO lines (Item, SKU, Unit, Unit Cost).
+
+Quantity defaults to Remaining Qty (can be edited down for partial invoicing).
+
+GST (6%) Calculation (new):
+
+Subtotal = sum(line_qty × unit_cost)
+
+GST (6%) = Subtotal × 0.06 (rounded to 2 decimals)
+
+Total = Subtotal + GST
+(“Tax added to subtotal” model.)
+
+Status:
+
+Draft (editable)
+
+Finalized (locked)
+
+Workflow: Creating an Invoice from a PO (new)
+
+User navigates to /purchasing/orders and clicks Create Invoice on a PO
+(or /purchasing/invoices/new → select PO)
+
+System Action:
+
+Pulls vendor + PO header info
+
+Pre-populates invoice lines from PO
+
+Sets invoice line quantities = Remaining Qty by default
+
+User enters:
+
+Invoice No (from paper/PDF)
+
+Invoice Date
+
+(Optional) Due Date / Terms
+
+System Action:
+
+Calculates Subtotal
+
+Adds GST 6%
+
+Shows Total
+
+User clicks Save Draft or Finalize
+
+On Finalize, System Action:
+
+Locks the invoice
+
+Decrements PO Remaining Qty by invoiced quantities (per line)
+
+If Remaining Qty becomes 0 for all lines, PO becomes Invoiced (or Closed)
+
+Edge Cases (updated + new)
+
+Duplicate Invoice No per Vendor: warn + block finalize (same as v2.1).
+
+Over-billing quantity: user enters qty > remaining qty → block with:
+
+“Quantity exceeds remaining PO quantity.”
+
+Price variance (if you allow overrides):
+
+If unit cost differs from PO: require Manager permission + audit log
+
+Otherwise make Unit Cost read-only for MVP
+
+GST rounding: GST is rounded to 2 decimals; total reflects rounded GST.
+
+Finalized Edit: block changes unless “Reopened” by Manager (same as v2.1).
+
+Cancelled PO: cannot create invoice from a cancelled PO.

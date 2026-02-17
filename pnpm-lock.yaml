@@ -12,7 +12,7 @@ importers:
         specifier: ^3.0.0
         version: 3.3.7(@babel/parser@7.29.0)(change-case@5.4.4)(db0@0.3.4(drizzle-orm@0.39.3(@cloudflare/workers-types@4.20260214.0)(pg@8.18.0)))(embla-carousel@8.6.0)(ioredis@5.9.3)(magicast@0.5.2)(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.28(typescript@5.9.3)))(vue@3.5.28(typescript@5.9.3))(zod@3.25.76)
       '@nuxthub/core':
-        specifier: ^0.9.1
+        specifier: 0.9.1
         version: 0.9.1(db0@0.3.4(drizzle-orm@0.39.3(@cloudflare/workers-types@4.20260214.0)(pg@8.18.0)))(ioredis@5.9.3)(magicast@0.5.2)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(yaml@2.8.2))
       '@pinia/nuxt':
         specifier: ^0.9.0

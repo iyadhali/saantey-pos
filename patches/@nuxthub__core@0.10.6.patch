@@ -1,0 +1,26 @@
+diff --git a/dist/db/lib/build.mjs b/dist/db/lib/build.mjs
+index 768477014333c3947fb4a15e2fb82329204948bc..d9228d48e551501d17865d2c81b0198a93d0d2a5 100644
+--- a/dist/db/lib/build.mjs
++++ b/dist/db/lib/build.mjs
+@@ -78,7 +78,7 @@ export async function buildDatabaseSchema(buildDir, { relativeDir, alias } = {})
+     format: "esm",
+     skipNodeModulesBundle: true,
+     tsconfig: false,
+-    dts: {
++    dts: false, _dts_disabled: {
+       build: false,
+       tsconfig: false,
+       newContext: true
+diff --git a/dist/module.mjs b/dist/module.mjs
+index 1ef9c1437928b792369a168489dbf4ac6842e334..a4e7a8ab64ecd37ba86c3db29b798369e78e4987 100644
+--- a/dist/module.mjs
++++ b/dist/module.mjs
+@@ -6,7 +6,7 @@ import { readPackageJSON, findWorkspaceDir } from 'pkg-types';
+ import { provider } from 'std-env';
+ import chokidar from 'chokidar';
+ import { glob } from 'tinyglobby';
+-import { copyDatabaseMigrationsToHubDir, copyDatabaseQueriesToHubDir, copyDatabaseAssets, applyBuildTimeMigrations, getDatabaseSchemaPathMetadata, buildDatabaseSchema } from './db/lib';
++import { copyDatabaseMigrationsToHubDir, copyDatabaseQueriesToHubDir, copyDatabaseAssets, applyBuildTimeMigrations, getDatabaseSchemaPathMetadata, buildDatabaseSchema } from './db/lib/index.mjs';
+ import { existsSync } from 'node:fs';
+ import { createHooks } from 'hookable';
+ import { getPort } from 'get-port-please';

@@ -50,7 +50,7 @@ describe('Users API', () => {
 
 describe('Database', () => {
   it('useDatabase export exists', async () => {
-    const mod = await import('~~/server/database/index')
+    const mod = await import('~~/server/db/index')
     expect(mod.useDatabase).toBeDefined()
     expect(typeof mod.useDatabase).toBe('function')
   })

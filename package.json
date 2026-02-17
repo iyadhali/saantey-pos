@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@nuxt/ui": "^3.0.0",
-    "@nuxthub/core": "^0.9.1",
+    "@nuxthub/core": "^0.10.6",
     "@pinia/nuxt": "^0.9.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
@@ -41,6 +41,7 @@
     "@oxc-minify/binding-darwin-arm64": "^0.114.0",
     "@oxc-parser/binding-darwin-arm64": "^0.114.0",
     "@oxc-transform/binding-darwin-arm64": "^0.114.0",
+    "@rolldown/binding-darwin-arm64": "^1.0.0-rc.4",
     "@types/node": "^25.2.3",
     "@vitejs/plugin-vue": "^5.2.0",
     "@vue/test-utils": "^2.4.0",
@@ -51,5 +52,14 @@
     "typescript": "^5.6.3",
     "vitest": "^3.0.0",
     "wrangler": "^4.65.0"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@nuxthub/core@0.10.6": "patches/@nuxthub__core@0.10.6.patch"
+    },
+    "supportedArchitectures": {
+      "os": ["current", "linux"],
+      "cpu": ["current", "x64"]
+    }
   }
 }

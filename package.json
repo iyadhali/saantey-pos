@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@nuxt/ui": "^3.0.0",
-    "@nuxthub/core": "0.9.1",
+    "@nuxthub/core": "^0.9.1",
     "@pinia/nuxt": "^0.9.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",

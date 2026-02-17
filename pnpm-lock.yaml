@@ -12,7 +12,7 @@ importers:
         specifier: ^3.0.0
         version: 3.3.7(@babel/parser@7.29.0)(change-case@5.4.4)(db0@0.3.4(drizzle-orm@0.39.3(@cloudflare/workers-types@4.20260217.0)(pg@8.18.0)))(embla-carousel@8.6.0)(ioredis@5.9.3)(magicast@0.5.2)(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.28(typescript@5.9.3)))(vue@3.5.28(typescript@5.9.3))(zod@3.25.76)
       '@nuxthub/core':
-        specifier: 0.9.1
+        specifier: ^0.9.1
         version: 0.9.1(db0@0.3.4(drizzle-orm@0.39.3(@cloudflare/workers-types@4.20260217.0)(pg@8.18.0)))(ioredis@5.9.3)(magicast@0.5.2)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(yaml@2.8.2))
       '@pinia/nuxt':
         specifier: ^0.9.0
@@ -1363,7 +1363,6 @@ packages:
   '@oxc-minify/binding-darwin-arm64@0.114.0':
     resolution: {integrity: sha512-KeHmedhofZMk8r9utfML3lr+sgkSms/Lk4yrzP11LyoXvgVTG3bcllCNbx1+bbH+8pues0vAEy+tC0OYd39BpQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
-    cpu: [arm64]
     os: [darwin]
 
   '@oxc-minify/binding-darwin-x64@0.112.0':
@@ -1488,7 +1487,6 @@ packages:
   '@oxc-parser/binding-darwin-arm64@0.114.0':
     resolution: {integrity: sha512-oQpuBInKrb77rgAStzuRkulUOhoqPxTYaQ1vc3CCE2WeVvJyysQF8/f7jtoJUWpEHGKvIq/UELkHyHoETAso6A==}
     engines: {node: ^20.19.0 || >=22.12.0}
-    cpu: [arm64]
     os: [darwin]
 
   '@oxc-parser/binding-darwin-x64@0.112.0':
@@ -1616,7 +1614,6 @@ packages:
   '@oxc-transform/binding-darwin-arm64@0.114.0':
     resolution: {integrity: sha512-aeilskCknKFFYrT72TjzNe7zvNfRykDPegtstiDovHqGJfOimIVXbEilnYGXMWQp7mfRhMU/w8gWL22T6SeuSw==}
     engines: {node: ^20.19.0 || >=22.12.0}
-    cpu: [arm64]
     os: [darwin]
 
   '@oxc-transform/binding-darwin-x64@0.112.0':

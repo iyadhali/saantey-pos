@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { Plus } from 'lucide-vue-next'
+import type { TableColumn, TableRow } from '@nuxt/ui'
+import type { InventoryPosting } from '~~/shared/types'
 import { MOCK_POSTINGS } from '~/utils/mockData'
 
-const columns = [
-  { key: 'id', label: 'Posting ID' },
-  { key: 'date', label: 'Date' },
-  { key: 'location', label: 'Location' },
-  { key: 'counted', label: 'Items Counted' },
-  { key: 'createdBy', label: 'Created By' },
-  { key: 'status', label: 'Status' },
+interface PostingRow extends InventoryPosting {
+  counted: string
+}
+
+const columns: TableColumn<PostingRow>[] = [
+  { accessorKey: 'id', header: 'Posting ID' },
+  { accessorKey: 'date', header: 'Date' },
+  { accessorKey: 'location', header: 'Location' },
+  { accessorKey: 'counted', header: 'Items Counted' },
+  { accessorKey: 'createdBy', header: 'Created By' },
+  { accessorKey: 'status', header: 'Status' },
 ]
 
 const postingRows = computed(() =>
@@ -18,35 +23,30 @@ const postingRows = computed(() =>
   })),
 )
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleRowClick = (row: Record<string, any>) => {
-  navigateTo(`/inventory/posting/${row.id}`)
+const handleRowClick = (_e: Event, row: TableRow<PostingRow>) => {
+  navigateTo(`/inventory/posting/${row.original.id}`)
 }
 </script>
 
 <template>
-  <div class="space-y-6">
-    <LayoutPageHeader title="Inventory Postings" subtitle="View and manage inventory counts">
-      <template #actions>
-        <NuxtLink
-          to="/inventory/posting/new"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
-        >
-          <Plus class="size-4" />
-          New Count
-        </NuxtLink>
-      </template>
-    </LayoutPageHeader>
+  <UDashboardPanel id="inventory-postings">
+    <template #header>
+      <UDashboardNavbar title="Inventory Postings">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <UButton icon="i-lucide-plus" label="New Count" to="/inventory/posting/new" />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <!-- Table -->
-    <CommonDataTable :columns="columns" :rows="postingRows" @row-click="handleRowClick">
-      <template #cell-status="{ value }">
-        <CommonStatusBadge :status="value" />
-      </template>
-    </CommonDataTable>
-
-    <p v-if="postingRows.length === 0" class="text-center py-8 text-(--color-muted-foreground)">
-      No inventory postings found.
-    </p>
-  </div>
+    <template #body>
+      <UTable :data="postingRows" :columns="columns" caption="Inventory postings" empty="No inventory postings found." @select="handleRowClick">
+        <template #status-cell="{ row }">
+          <CommonStatusBadge :status="row.original.status" />
+        </template>
+      </UTable>
+    </template>
+  </UDashboardPanel>
 </template>

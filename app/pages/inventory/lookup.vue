@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Search } from 'lucide-vue-next'
+import type { TableColumn } from '@nuxt/ui'
 import type { InventoryItem } from '~~/shared/types'
 import { MOCK_INVENTORY } from '~/utils/mockData'
 
@@ -13,16 +13,16 @@ const types = ['All', 'Raw', 'Prep', 'Menu']
 const fmt = (amount: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 
-const columns = [
-  { key: 'id', label: 'Item ID' },
-  { key: 'name', label: 'Name' },
-  { key: 'sku', label: 'SKU' },
-  { key: 'category', label: 'Category' },
-  { key: 'type', label: 'Type' },
-  { key: 'unit', label: 'Unit' },
-  { key: 'par', label: 'Par Level', class: 'text-right' },
-  { key: 'onHand', label: 'On Hand', class: 'text-right' },
-  { key: 'cost', label: 'Cost', class: 'text-right' },
+const columns: TableColumn<InventoryItem>[] = [
+  { accessorKey: 'id', header: 'Item ID' },
+  { accessorKey: 'name', header: 'Name' },
+  { accessorKey: 'sku', header: 'SKU' },
+  { accessorKey: 'category', header: 'Category' },
+  { accessorKey: 'type', header: 'Type' },
+  { accessorKey: 'unit', header: 'Unit' },
+  { accessorKey: 'par', header: 'Par Level', meta: { class: { th: 'text-right', td: 'text-right' } } },
+  { accessorKey: 'onHand', header: 'On Hand', meta: { class: { th: 'text-right', td: 'text-right' } } },
+  { accessorKey: 'cost', header: 'Cost', meta: { class: { th: 'text-right', td: 'text-right' } } },
 ]
 
 const filteredItems = computed(() => {
@@ -44,80 +44,64 @@ const filteredItems = computed(() => {
 const getStockColorClass = (item: InventoryItem): string => {
   const ratio = item.onHand / item.par
   if (ratio < 0.5) return 'text-red-600 font-semibold'
-  if (ratio < 0.8) return 'text-amber-600 font-medium'
-  return 'text-emerald-600 font-medium'
+  if (ratio < 0.8) return 'text-amber-700 font-medium'
+  return 'text-emerald-700 font-medium'
 }
 </script>
 
 <template>
-  <div class="space-y-6">
-    <LayoutPageHeader title="Item Lookup" subtitle="Search and view all inventory items" />
+  <UDashboardPanel id="item-lookup">
+    <template #header>
+      <UDashboardNavbar title="Item Lookup">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <!-- Search -->
-    <div class="flex flex-col sm:flex-row gap-4">
-      <div class="relative flex-1 max-w-sm">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-(--color-muted-foreground)" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search by name, SKU, or category..."
-          class="w-full pl-10 pr-4 py-2 rounded-lg border border-(--color-border) bg-(--color-background) text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-        >
+    <template #body>
+      <!-- Search -->
+      <UInput v-model="searchQuery" icon="i-lucide-search" placeholder="Search by name, SKU, or category..." aria-label="Search inventory items" class="max-w-sm" />
+
+      <!-- Filters -->
+      <div class="space-y-3">
+        <div class="flex gap-2 flex-wrap items-center">
+          <span class="text-sm font-medium text-(--color-muted-foreground) mr-1">Category:</span>
+          <button
+            v-for="category in categories"
+            :key="category"
+            class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
+            :class="activeCategory === category ? 'bg-primary text-primary-foreground border-primary' : 'bg-(--color-card) text-(--color-muted-foreground) border-(--color-border) hover:bg-(--color-accent)'"
+            @click="activeCategory = category"
+          >
+            {{ category }}
+          </button>
+        </div>
+        <div class="flex gap-2 flex-wrap items-center">
+          <span class="text-sm font-medium text-(--color-muted-foreground) mr-1">Type:</span>
+          <button
+            v-for="itemType in types"
+            :key="itemType"
+            class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
+            :class="activeType === itemType ? 'bg-primary text-primary-foreground border-primary' : 'bg-(--color-card) text-(--color-muted-foreground) border-(--color-border) hover:bg-(--color-accent)'"
+            @click="activeType = itemType"
+          >
+            {{ itemType }}
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- Category Filters -->
-    <div class="space-y-3">
-      <div class="flex gap-2 flex-wrap items-center">
-        <span class="text-sm font-medium text-(--color-muted-foreground) mr-1">Category:</span>
-        <button
-          v-for="category in categories"
-          :key="category"
-          class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
-          :class="
-            activeCategory === category
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-(--color-card) text-(--color-muted-foreground) border-(--color-border) hover:bg-(--color-accent)'
-          "
-          @click="activeCategory = category"
-        >
-          {{ category }}
-        </button>
-      </div>
-
-      <!-- Type Filters -->
-      <div class="flex gap-2 flex-wrap items-center">
-        <span class="text-sm font-medium text-(--color-muted-foreground) mr-1">Type:</span>
-        <button
-          v-for="itemType in types"
-          :key="itemType"
-          class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
-          :class="
-            activeType === itemType
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-(--color-card) text-(--color-muted-foreground) border-(--color-border) hover:bg-(--color-accent)'
-          "
-          @click="activeType = itemType"
-        >
-          {{ itemType }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Table -->
-    <CommonDataTable :columns="columns" :rows="filteredItems">
-      <template #cell-onHand="{ row }">
-        <span :class="getStockColorClass(row as InventoryItem)">
-          {{ row.onHand }}
-        </span>
-      </template>
-      <template #cell-cost="{ value }">
-        {{ fmt(value) }}
-      </template>
-    </CommonDataTable>
-
-    <p v-if="filteredItems.length === 0" class="text-center py-8 text-(--color-muted-foreground)">
-      No items found matching your criteria.
-    </p>
-  </div>
+      <!-- Table -->
+      <UTable :data="filteredItems" :columns="columns" caption="Inventory items" empty="No items found matching your criteria.">
+        <template #onHand-cell="{ row }">
+          <span :class="getStockColorClass(row.original as InventoryItem)">
+            <UIcon v-if="row.original.onHand / row.original.par < 0.5" name="i-lucide-triangle-alert" class="size-3.5 inline align-text-bottom" />
+            <UIcon v-else-if="row.original.onHand / row.original.par < 0.8" name="i-lucide-circle-alert" class="size-3.5 inline align-text-bottom" />
+            {{ row.original.onHand }}
+          </span>
+        </template>
+        <template #cost-cell="{ row }">{{ fmt(row.original.cost) }}</template>
+      </UTable>
+    </template>
+  </UDashboardPanel>
 </template>

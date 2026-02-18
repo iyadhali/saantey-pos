@@ -1,19 +1,9 @@
 <script setup lang="ts">
-import {
-  Monitor,
-  ShoppingCart,
-  Package,
-  ChefHat,
-  FileText,
-  Settings,
-  ArrowRight,
-  AlertCircle,
-} from 'lucide-vue-next'
 
 const MODULES = [
   {
     title: 'Point of Sale',
-    icon: Monitor,
+    icon: 'i-lucide-monitor',
     href: '/pos',
     description: 'Floor plan, orders, and payments',
     counters: [
@@ -23,7 +13,7 @@ const MODULES = [
   },
   {
     title: 'Purchasing',
-    icon: ShoppingCart,
+    icon: 'i-lucide-shopping-cart',
     href: '/purchasing',
     description: 'Manage orders, invoices, and vendors',
     counters: [
@@ -33,7 +23,7 @@ const MODULES = [
   },
   {
     title: 'Inventory',
-    icon: Package,
+    icon: 'i-lucide-package',
     href: '/inventory',
     description: 'Counts, waste logs, and transfers',
     counters: [
@@ -43,7 +33,7 @@ const MODULES = [
   },
   {
     title: 'Recipes',
-    icon: ChefHat,
+    icon: 'i-lucide-chef-hat',
     href: '/recipes',
     description: 'Recipe costing and menu management',
     counters: [
@@ -52,7 +42,7 @@ const MODULES = [
   },
   {
     title: 'Reports',
-    icon: FileText,
+    icon: 'i-lucide-file-text',
     href: '/reports',
     description: 'Cost of goods, variance, and usage',
     counters: [
@@ -61,7 +51,7 @@ const MODULES = [
   },
   {
     title: 'Settings',
-    icon: Settings,
+    icon: 'i-lucide-settings',
     href: '/settings',
     description: 'System configuration and users',
     counters: [],
@@ -70,52 +60,59 @@ const MODULES = [
 </script>
 
 <template>
-  <div class="space-y-8">
-    <LayoutPageHeader
-      title="Dashboard"
-      subtitle="Welcome back, John. Here is what needs your attention today."
-    />
+  <UDashboardPanel id="dashboard">
+    <template #header>
+      <UDashboardNavbar title="Dashboard">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <NuxtLink
-        v-for="mod in MODULES"
-        :key="mod.title"
-        :to="mod.href"
-        class="block group"
-      >
-        <div class="h-full border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-6 hover:border-primary/50 hover:shadow-md transition-all duration-200 cursor-pointer">
-          <div class="flex items-start justify-between pb-2">
-            <div class="flex items-center gap-3">
-              <div class="p-2.5 rounded-lg bg-(--color-secondary)/80 text-(--color-secondary-foreground) group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                <component :is="mod.icon" class="size-6" />
+    <template #body>
+      <p class="text-sm text-muted">Welcome back, John. Here is what needs your attention today.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <NuxtLink
+          v-for="mod in MODULES"
+          :key="mod.title"
+          :to="mod.href"
+          class="block group"
+        >
+          <div class="h-full border border-(--color-border) bg-(--color-card) rounded-lg p-6 hover:border-primary/50 hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div class="flex items-start justify-between pb-2">
+              <div class="flex items-center gap-3">
+                <div class="p-2.5 rounded-lg bg-(--color-secondary)/80 text-(--color-secondary-foreground) group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                  <UIcon :name="mod.icon" class="size-6" />
+                </div>
+                <div>
+                  <h3 class="text-xl font-semibold">{{ mod.title }}</h3>
+                  <p class="text-sm text-(--color-muted-foreground) mt-1">{{ mod.description }}</p>
+                </div>
               </div>
-              <div>
-                <h3 class="text-xl font-semibold">{{ mod.title }}</h3>
-                <p class="text-sm text-(--color-muted-foreground) mt-1">{{ mod.description }}</p>
+              <UIcon name="i-lucide-arrow-right" class="size-5 text-(--color-muted-foreground) group-hover:text-primary group-hover:translate-x-1 transition-all" />
+            </div>
+
+            <div class="flex flex-wrap gap-3 pt-6">
+              <div
+                v-for="(counter, i) in mod.counters"
+                :key="i"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border"
+                :class="
+                  counter.type === 'warning'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : counter.type === 'error'
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-(--color-secondary)/50 text-(--color-secondary-foreground) border-transparent'
+                "
+              >
+                <UIcon v-if="counter.type !== 'neutral'" name="i-lucide-alert-circle" class="size-3.5" />
+                <span>{{ counter.value }} {{ counter.label }}</span>
               </div>
             </div>
-            <ArrowRight class="size-5 text-(--color-muted-foreground) group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </div>
-
-          <div class="flex flex-wrap gap-3 pt-6">
-            <div
-              v-for="(counter, i) in mod.counters"
-              :key="i"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border"
-              :class="
-                counter.type === 'warning'
-                  ? 'bg-amber-50 text-amber-700 border-amber-200'
-                  : counter.type === 'error'
-                    ? 'bg-red-50 text-red-700 border-red-200'
-                    : 'bg-(--color-secondary)/50 text-(--color-secondary-foreground) border-transparent'
-              "
-            >
-              <AlertCircle v-if="counter.type !== 'neutral'" class="size-3.5" />
-              <span>{{ counter.value }} {{ counter.label }}</span>
-            </div>
-          </div>
-        </div>
-      </NuxtLink>
-    </div>
-  </div>
+        </NuxtLink>
+      </div>
+    </template>
+  </UDashboardPanel>
 </template>

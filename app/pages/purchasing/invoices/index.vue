@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Search } from 'lucide-vue-next'
+import type { TableColumn, TableRow } from '@nuxt/ui'
+import type { Invoice } from '~~/shared/types'
 import { MOCK_INVOICES } from '~/utils/mockData'
 
 const searchQuery = ref('')
@@ -10,15 +11,15 @@ const statuses = ['All', 'Draft', 'Pending', 'Finalized', 'Rejected']
 const fmt = (amount: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 
-const columns = [
-  { key: 'id', label: 'Invoice #' },
-  { key: 'vendorName', label: 'Vendor' },
-  { key: 'poNumber', label: 'PO Number' },
-  { key: 'invoiceDate', label: 'Invoice Date' },
-  { key: 'status', label: 'Status' },
-  { key: 'subtotal', label: 'Subtotal', class: 'text-right' },
-  { key: 'gst', label: 'GST', class: 'text-right' },
-  { key: 'total', label: 'Total', class: 'text-right' },
+const columns: TableColumn<Invoice>[] = [
+  { accessorKey: 'id', header: 'Invoice #' },
+  { accessorKey: 'vendorName', header: 'Vendor' },
+  { accessorKey: 'poNumber', header: 'PO Number' },
+  { accessorKey: 'invoiceDate', header: 'Invoice Date' },
+  { accessorKey: 'status', header: 'Status' },
+  { accessorKey: 'subtotal', header: 'Subtotal', meta: { class: { th: 'text-right', td: 'text-right' } } },
+  { accessorKey: 'gst', header: 'GST', meta: { class: { th: 'text-right', td: 'text-right' } } },
+  { accessorKey: 'total', header: 'Total', meta: { class: { th: 'text-right', td: 'text-right' } } },
 ]
 
 const filteredInvoices = computed(() => {
@@ -34,62 +35,57 @@ const filteredInvoices = computed(() => {
   })
 })
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleRowClick = (row: Record<string, any>) => {
-  navigateTo(`/purchasing/invoices/${row.id}`)
+const handleRowClick = (_e: Event, row: TableRow<Invoice>) => {
+  navigateTo(`/purchasing/invoices/${row.original.id}`)
 }
 </script>
 
 <template>
-  <div class="space-y-6">
-    <LayoutPageHeader title="Invoices" subtitle="Track and manage vendor invoices" />
+  <UDashboardPanel id="invoices">
+    <template #header>
+      <UDashboardNavbar title="Invoices">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <!-- Filters -->
-    <div class="flex flex-col sm:flex-row gap-4">
-      <div class="relative flex-1 max-w-sm">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-(--color-muted-foreground)" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search invoices..."
-          class="w-full pl-10 pr-4 py-2 rounded-lg border border-(--color-border) bg-(--color-background) text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-        >
+    <template #body>
+      <!-- Filters -->
+      <div class="flex flex-col sm:flex-row gap-4">
+        <UInput v-model="searchQuery" icon="i-lucide-search" placeholder="Search invoices..." aria-label="Search invoices" class="flex-1 max-w-sm" />
+        <div class="flex gap-2 flex-wrap">
+          <button
+            v-for="status in statuses"
+            :key="status"
+            class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
+            :class="
+              activeStatus === status
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-(--color-card) text-(--color-muted-foreground) border-(--color-border) hover:bg-(--color-accent)'
+            "
+            @click="activeStatus = status"
+          >
+            {{ status }}
+          </button>
+        </div>
       </div>
-      <div class="flex gap-2 flex-wrap">
-        <button
-          v-for="status in statuses"
-          :key="status"
-          class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
-          :class="
-            activeStatus === status
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-(--color-card) text-(--color-muted-foreground) border-(--color-border) hover:bg-(--color-accent)'
-          "
-          @click="activeStatus = status"
-        >
-          {{ status }}
-        </button>
-      </div>
-    </div>
 
-    <!-- Table -->
-    <CommonDataTable :columns="columns" :rows="filteredInvoices" @row-click="handleRowClick">
-      <template #cell-status="{ value }">
-        <CommonStatusBadge :status="value" />
-      </template>
-      <template #cell-subtotal="{ value }">
-        {{ fmt(value) }}
-      </template>
-      <template #cell-gst="{ value }">
-        {{ fmt(value) }}
-      </template>
-      <template #cell-total="{ value }">
-        <span class="font-medium">{{ fmt(value) }}</span>
-      </template>
-    </CommonDataTable>
-
-    <p v-if="filteredInvoices.length === 0" class="text-center py-8 text-(--color-muted-foreground)">
-      No invoices found matching your criteria.
-    </p>
-  </div>
+      <!-- Table -->
+      <UTable :data="filteredInvoices" :columns="columns" caption="Invoices" empty="No invoices found matching your criteria." @select="handleRowClick">
+        <template #status-cell="{ row }">
+          <CommonStatusBadge :status="row.original.status" />
+        </template>
+        <template #subtotal-cell="{ row }">
+          {{ fmt(row.original.subtotal) }}
+        </template>
+        <template #gst-cell="{ row }">
+          {{ fmt(row.original.gst) }}
+        </template>
+        <template #total-cell="{ row }">
+          <span class="font-medium">{{ fmt(row.original.total) }}</span>
+        </template>
+      </UTable>
+    </template>
+  </UDashboardPanel>
 </template>

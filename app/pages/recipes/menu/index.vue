@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { Plus, Search } from 'lucide-vue-next'
+import type { TableColumn, TableRow } from '@nuxt/ui'
+import type { Recipe } from '~~/shared/types'
 import { MOCK_RECIPES } from '~/utils/mockData'
 
 const searchQuery = ref('')
 
-const columns = [
-  { key: 'id', label: 'Item ID' },
-  { key: 'name', label: 'Name' },
-  { key: 'category', label: 'Category' },
-  { key: 'status', label: 'Status' },
-  { key: 'foodCostPercent', label: 'Food Cost %', class: 'text-right' },
+type MenuItem = Recipe & { status: 'Active' }
+
+const columns: TableColumn<MenuItem>[] = [
+  { accessorKey: 'id', header: 'Item ID' },
+  { accessorKey: 'name', header: 'Name' },
+  { accessorKey: 'category', header: 'Category' },
+  { accessorKey: 'status', header: 'Status' },
+  { accessorKey: 'foodCostPercent', header: 'Food Cost %', meta: { class: { th: 'text-right', td: 'text-right' } } },
 ]
 
 const menuItems = computed(() => {
@@ -28,56 +31,46 @@ const menuItems = computed(() => {
   )
 })
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleRowClick = (row: Record<string, any>) => {
-  navigateTo(`/recipes/detail/${row.id}`)
+const handleRowClick = (_e: Event, row: TableRow<MenuItem>) => {
+  navigateTo(`/recipes/detail/${row.original.id}`)
 }
+
 </script>
 
 <template>
-  <div class="space-y-6">
-    <LayoutPageHeader title="Menu Items" subtitle="Costed menu recipes">
-      <template #actions>
-        <NuxtLink
-          to="/recipes/menu/new/new"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
-        >
-          <Plus class="size-4" />
-          New Menu Item
-        </NuxtLink>
-      </template>
-    </LayoutPageHeader>
+  <UDashboardPanel id="menu-items">
+    <template #header>
+      <UDashboardNavbar title="Recipes">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <UButton icon="i-lucide-plus" label="New Menu Item" to="/recipes/menu/new/new" />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <!-- Search -->
-    <div class="flex flex-col sm:flex-row gap-4">
-      <div class="relative flex-1 max-w-sm">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-(--color-muted-foreground)" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search menu items..."
-          class="w-full pl-10 pr-4 py-2 rounded-lg border border-(--color-border) bg-(--color-background) text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-        >
-      </div>
-    </div>
+    <template #body>
+      <RecipeTabs />
 
-    <!-- Table -->
-    <CommonDataTable :columns="columns" :rows="menuItems" @row-click="handleRowClick">
-      <template #cell-status="{ value }">
-        <CommonStatusBadge :status="value" />
-      </template>
-      <template #cell-foodCostPercent="{ value }">
-        <span
-          class="font-medium"
-          :class="value > 30 ? 'text-red-600' : value > 25 ? 'text-amber-600' : 'text-emerald-600'"
-        >
-          {{ value }}%
-        </span>
-      </template>
-    </CommonDataTable>
+      <!-- Search -->
+      <UInput v-model="searchQuery" icon="i-lucide-search" placeholder="Search menu items..." aria-label="Search menu items" class="max-w-sm" />
 
-    <p v-if="menuItems.length === 0" class="text-center py-8 text-(--color-muted-foreground)">
-      No menu items found matching your criteria.
-    </p>
-  </div>
+      <!-- Table -->
+      <UTable :data="menuItems" :columns="columns" caption="Menu items" empty="No menu items found matching your criteria." @select="handleRowClick">
+        <template #status-cell="{ row }">
+          <CommonStatusBadge :status="row.original.status" />
+        </template>
+        <template #foodCostPercent-cell="{ row }">
+          <span
+            class="font-medium"
+            :class="row.original.foodCostPercent > 30 ? 'text-red-600' : row.original.foodCostPercent > 25 ? 'text-amber-700' : 'text-emerald-700'"
+          >
+            <UIcon v-if="row.original.foodCostPercent > 30" name="i-lucide-trending-up" class="size-3.5 inline align-text-bottom" />
+            {{ row.original.foodCostPercent }}%
+          </span>
+        </template>
+      </UTable>
+    </template>
+  </UDashboardPanel>
 </template>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Users, Clock, DollarSign, Plus, Monitor } from 'lucide-vue-next'
 import { MOCK_TABLES } from '~/utils/mockData'
 
 definePageMeta({ layout: 'pos' })
@@ -25,7 +24,7 @@ const statusDotColors: Record<string, string> = {
     <header class="h-14 border-b border-(--color-border) bg-(--color-background) px-6 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-3">
         <NuxtLink to="/" class="flex items-center gap-2 text-sm text-(--color-muted-foreground) hover:text-(--color-foreground)">
-          <Monitor class="size-4" />
+          <UIcon name="i-lucide-monitor" class="size-4" />
           Exit POS
         </NuxtLink>
       </div>
@@ -34,7 +33,7 @@ const statusDotColors: Record<string, string> = {
       </div>
       <div class="flex items-center gap-3">
         <button class="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-white rounded-md hover:bg-primary/90">
-          <Plus class="size-4" />
+          <UIcon name="i-lucide-plus" class="size-4" />
           New Tab
         </button>
       </div>
@@ -68,18 +67,18 @@ const statusDotColors: Record<string, string> = {
 
             <div class="text-xs text-(--color-muted-foreground) space-y-1">
               <div class="flex items-center gap-1">
-                <Users class="size-3" />
+                <UIcon name="i-lucide-users" class="size-3" />
                 {{ table.guests || 0 }}/{{ table.capacity }}
               </div>
               <div class="font-medium capitalize">{{ table.status }}</div>
 
               <template v-if="table.status === 'Occupied'">
                 <div class="flex items-center gap-1">
-                  <Clock class="size-3" />
+                  <UIcon name="i-lucide-clock" class="size-3" />
                   {{ table.timeSeated }}
                 </div>
                 <div class="flex items-center gap-1 font-medium text-(--color-foreground)">
-                  <DollarSign class="size-3" />
+                  <UIcon name="i-lucide-dollar-sign" class="size-3" />
                   {{ table.checkTotal?.toFixed(2) }}
                 </div>
                 <div class="text-xs">{{ table.server }}</div>

@@ -33,9 +33,19 @@ describe('DefaultLayout', () => {
     expect(wrapper.text()).toContain('Settings')
   })
 
-  it('renders context switcher with property name', async () => {
+  it('renders outlet switcher with current outlet name', async () => {
     const wrapper = await mountSuspended(DefaultLayout)
-    expect(wrapper.text()).toContain('Maldives Resort & Spa')
+    expect(wrapper.text()).toContain('Main Restaurant')
+  })
+
+  it('renders search button', async () => {
+    const wrapper = await mountSuspended(DefaultLayout)
+    expect(wrapper.text()).toContain('Search')
+  })
+
+  it('renders user menu with user name', async () => {
+    const wrapper = await mountSuspended(DefaultLayout)
+    expect(wrapper.text()).toContain('John Doe')
   })
 
   it('has slot for page content', async () => {
@@ -45,5 +55,10 @@ describe('DefaultLayout', () => {
       },
     })
     expect(wrapper.html()).toContain('Page Content')
+  })
+
+  it('renders Point of Sale secondary nav', async () => {
+    const wrapper = await mountSuspended(DefaultLayout)
+    expect(wrapper.text()).toContain('Point of Sale')
   })
 })

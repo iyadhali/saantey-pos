@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { Search } from 'lucide-vue-next'
+import type { TableColumn, TableRow } from '@nuxt/ui'
+import type { Vendor } from '~~/shared/types'
 import { MOCK_VENDORS } from '~/utils/mockData'
 
 const searchQuery = ref('')
 
-const columns = [
-  { key: 'name', label: 'Name' },
-  { key: 'contactName', label: 'Contact' },
-  { key: 'email', label: 'Email' },
-  { key: 'lastOrder', label: 'Last Order' },
-  { key: 'catalogItems', label: 'Catalog Items', class: 'text-right' },
-  { key: 'status', label: 'Status' },
+const columns: TableColumn<Vendor>[] = [
+  { accessorKey: 'name', header: 'Name' },
+  { accessorKey: 'contactName', header: 'Contact' },
+  { accessorKey: 'email', header: 'Email' },
+  { accessorKey: 'lastOrder', header: 'Last Order' },
+  { accessorKey: 'catalogItems', header: 'Catalog Items', meta: { class: { th: 'text-right', td: 'text-right' } } },
+  { accessorKey: 'status', header: 'Status' },
 ]
 
 const filteredVendors = computed(() => {
@@ -24,39 +25,34 @@ const filteredVendors = computed(() => {
   )
 })
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleRowClick = (row: Record<string, any>) => {
-  navigateTo(`/purchasing/vendors/${row.id}`)
+const handleRowClick = (_e: Event, row: TableRow<Vendor>) => {
+  navigateTo(`/purchasing/vendors/${row.original.id}`)
 }
 </script>
 
 <template>
-  <div class="space-y-6">
-    <LayoutPageHeader title="Vendors" subtitle="Manage vendor relationships and catalogs" />
+  <UDashboardPanel id="vendors">
+    <template #header>
+      <UDashboardNavbar title="Vendors">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <!-- Search -->
-    <div class="relative max-w-sm">
-      <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-(--color-muted-foreground)" />
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Search vendors..."
-        class="w-full pl-10 pr-4 py-2 rounded-lg border border-(--color-border) bg-(--color-background) text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-      >
-    </div>
+    <template #body>
+      <!-- Search -->
+      <UInput v-model="searchQuery" icon="i-lucide-search" placeholder="Search vendors..." aria-label="Search vendors" class="max-w-sm" />
 
-    <!-- Table -->
-    <CommonDataTable :columns="columns" :rows="filteredVendors" @row-click="handleRowClick">
-      <template #cell-status="{ value }">
-        <CommonStatusBadge :status="value" />
-      </template>
-      <template #cell-email="{ value }">
-        <span class="text-(--color-muted-foreground)">{{ value }}</span>
-      </template>
-    </CommonDataTable>
-
-    <p v-if="filteredVendors.length === 0" class="text-center py-8 text-(--color-muted-foreground)">
-      No vendors found matching your search.
-    </p>
-  </div>
+      <!-- Table -->
+      <UTable :data="filteredVendors" :columns="columns" caption="Vendors" empty="No vendors found matching your search." @select="handleRowClick">
+        <template #status-cell="{ row }">
+          <CommonStatusBadge :status="row.original.status" />
+        </template>
+        <template #email-cell="{ row }">
+          <span class="text-(--color-muted-foreground)">{{ row.original.email }}</span>
+        </template>
+      </UTable>
+    </template>
+  </UDashboardPanel>
 </template>

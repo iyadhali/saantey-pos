@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ArrowLeft } from 'lucide-vue-next'
 import { MOCK_TABLES } from '~/utils/mockData'
 
 definePageMeta({ layout: 'pos' })
@@ -14,7 +13,7 @@ const table = computed(() => MOCK_TABLES.find(t => t.id === tableId.value))
     <!-- Header -->
     <header class="h-14 border-b border-(--color-border) bg-(--color-background) px-6 flex items-center gap-4 shrink-0">
       <NuxtLink to="/pos" class="flex items-center gap-2 text-sm text-(--color-muted-foreground) hover:text-(--color-foreground)">
-        <ArrowLeft class="size-4" />
+        <UIcon name="i-lucide-arrow-left" class="size-4" />
         Back to Floor
       </NuxtLink>
       <span class="text-sm font-medium">

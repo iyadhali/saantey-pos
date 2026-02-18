@@ -1,22 +1,29 @@
 <script setup lang="ts">
-import { Plus, Search } from 'lucide-vue-next'
+import type { Order } from '~~/shared/types'
+import type { TableColumn, TableRow } from '@nuxt/ui'
 import { MOCK_ORDERS } from '~/utils/mockData'
+import type { DateRangeValue } from '~/components/common/DateRangePicker.vue'
 
 const searchQuery = ref('')
 const activeStatus = ref('All')
+const dateRange = ref<DateRangeValue>()
+
+function clearDateRange() {
+  dateRange.value = undefined
+}
 
 const statuses = ['All', 'Draft', 'Open', 'Sent', 'Needs Receiving', 'Closed']
 
 const fmt = (amount: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 
-const columns = [
-  { key: 'id', label: 'PO #' },
-  { key: 'vendorName', label: 'Vendor' },
-  { key: 'orderDate', label: 'Order Date' },
-  { key: 'deliveryDate', label: 'Delivery Date' },
-  { key: 'status', label: 'Status' },
-  { key: 'total', label: 'Total', class: 'text-right' },
+const columns: TableColumn<Order>[] = [
+  { accessorKey: 'id', header: 'PO #' },
+  { accessorKey: 'vendorName', header: 'Vendor' },
+  { accessorKey: 'orderDate', header: 'Order Date' },
+  { accessorKey: 'deliveryDate', header: 'Delivery Date' },
+  { accessorKey: 'status', header: 'Status' },
+  { accessorKey: 'total', header: 'Total', meta: { class: { th: 'text-right', td: 'text-right' } } },
 ]
 
 const filteredOrders = computed(() => {
@@ -27,70 +34,82 @@ const filteredOrders = computed(() => {
       order.vendorName.toLowerCase().includes(searchQuery.value.toLowerCase())
     const matchesStatus =
       activeStatus.value === 'All' || order.status === activeStatus.value
-    return matchesSearch && matchesStatus
+    const matchesDateRange = !dateRange.value?.start || !dateRange.value?.end || (() => {
+      const orderDate = order.orderDate
+      const s = dateRange.value!.start
+      const e = dateRange.value!.end
+      const start = `${s.getFullYear()}-${String(s.getMonth() + 1).padStart(2, '0')}-${String(s.getDate()).padStart(2, '0')}`
+      const end = `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, '0')}-${String(e.getDate()).padStart(2, '0')}`
+      return orderDate >= start && orderDate <= end
+    })()
+    return matchesSearch && matchesStatus && matchesDateRange
   })
 })
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleRowClick = (row: Record<string, any>) => {
-  navigateTo(`/purchasing/orders/${row.id}`)
+const handleRowSelect = (_e: Event, row: TableRow<Order>) => {
+  navigateTo(`/purchasing/orders/${row.original.id}`)
 }
 </script>
 
 <template>
-  <div class="space-y-6">
-    <LayoutPageHeader title="Purchase Orders" subtitle="Manage and track all purchase orders">
-      <template #actions>
-        <NuxtLink
-          to="/purchasing/orders/new"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
-        >
-          <Plus class="size-4" />
-          New PO
-        </NuxtLink>
-      </template>
-    </LayoutPageHeader>
+  <UDashboardPanel id="purchase-orders">
+    <template #header>
+      <UDashboardNavbar title="Purchase Orders">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <UButton icon="i-lucide-plus" label="New PO" to="/purchasing/orders/new" />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <!-- Filters -->
-    <div class="flex flex-col sm:flex-row gap-4">
-      <div class="relative flex-1 max-w-sm">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-(--color-muted-foreground)" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search orders..."
-          class="w-full pl-10 pr-4 py-2 rounded-lg border border-(--color-border) bg-(--color-background) text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-        >
+    <template #body>
+      <!-- Filters -->
+      <div class="flex flex-col sm:flex-row gap-4 flex-wrap">
+        <UInput v-model="searchQuery" icon="i-lucide-search" placeholder="Search orders..." aria-label="Search orders" class="flex-1 max-w-sm" />
+        <div class="flex items-center gap-2">
+          <CommonDateRangePicker v-model="dateRange" />
+          <UButton
+            v-if="dateRange"
+            icon="i-lucide-x"
+            size="xs"
+            variant="ghost"
+            @click="clearDateRange"
+          />
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <button
+            v-for="status in statuses"
+            :key="status"
+            class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
+            :class="
+              activeStatus === status
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-(--color-card) text-(--color-muted-foreground) border-(--color-border) hover:bg-(--color-accent)'
+            "
+            @click="activeStatus = status"
+          >
+            {{ status }}
+          </button>
+        </div>
       </div>
-      <div class="flex gap-2 flex-wrap">
-        <button
-          v-for="status in statuses"
-          :key="status"
-          class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
-          :class="
-            activeStatus === status
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-(--color-card) text-(--color-muted-foreground) border-(--color-border) hover:bg-(--color-accent)'
-          "
-          @click="activeStatus = status"
-        >
-          {{ status }}
-        </button>
-      </div>
-    </div>
 
-    <!-- Table -->
-    <CommonDataTable :columns="columns" :rows="filteredOrders" @row-click="handleRowClick">
-      <template #cell-status="{ value }">
-        <CommonStatusBadge :status="value" />
-      </template>
-      <template #cell-total="{ value }">
-        <span class="font-medium">{{ fmt(value) }}</span>
-      </template>
-    </CommonDataTable>
-
-    <p v-if="filteredOrders.length === 0" class="text-center py-8 text-(--color-muted-foreground)">
-      No orders found matching your criteria.
-    </p>
-  </div>
+      <!-- Table -->
+      <UTable
+        :data="filteredOrders"
+        :columns="columns"
+        caption="Purchase orders"
+        :empty="filteredOrders.length === 0 ? 'No orders found matching your criteria.' : undefined"
+        @select="handleRowSelect"
+      >
+        <template #status-cell="{ row }">
+          <CommonStatusBadge :status="row.original.status" />
+        </template>
+        <template #total-cell="{ row }">
+          <span class="font-medium">{{ fmt(row.original.total) }}</span>
+        </template>
+      </UTable>
+    </template>
+  </UDashboardPanel>
 </template>

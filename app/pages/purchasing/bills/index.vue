@@ -1,49 +1,68 @@
 <script setup lang="ts">
+import type { TableColumn, TableRow } from '@nuxt/ui'
+
 const fmt = (amount: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 
-const bills = [
+interface BillRow {
+  id: string
+  vendorName: string
+  invoiceId: string
+  billDate: string
+  dueDate: string
+  status: string
+  total: number
+}
+
+const bills: BillRow[] = [
   { id: 'BILL-2024-001', vendorName: 'Sysco Foods', invoiceId: 'INV-2024-001', billDate: '2024-05-22', dueDate: '2024-06-22', status: 'Open', total: 1245.50 },
   { id: 'BILL-2024-002', vendorName: 'Baldor Specialty', invoiceId: 'INV-2024-002', billDate: '2024-05-23', dueDate: '2024-06-23', status: 'Paid', total: 450.00 },
   { id: 'BILL-2024-003', vendorName: 'Meat Packers Inc', invoiceId: 'INV-2024-003', billDate: '2024-05-24', dueDate: '2024-06-24', status: 'Overdue', total: 2300.75 },
 ]
 
-const columns = [
-  { key: 'id', label: 'Bill #' },
-  { key: 'vendorName', label: 'Vendor' },
-  { key: 'invoiceId', label: 'Invoice' },
-  { key: 'billDate', label: 'Bill Date' },
-  { key: 'dueDate', label: 'Due Date' },
-  { key: 'status', label: 'Status' },
-  { key: 'total', label: 'Total', class: 'text-right' },
+const columns: TableColumn<BillRow>[] = [
+  { accessorKey: 'id', header: 'Bill #' },
+  { accessorKey: 'vendorName', header: 'Vendor' },
+  { accessorKey: 'invoiceId', header: 'Invoice' },
+  { accessorKey: 'billDate', header: 'Bill Date' },
+  { accessorKey: 'dueDate', header: 'Due Date' },
+  { accessorKey: 'status', header: 'Status' },
+  { accessorKey: 'total', header: 'Total', meta: { class: { th: 'text-right', td: 'text-right' } } },
 ]
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleRowClick = (row: Record<string, any>) => {
-  navigateTo(`/purchasing/bills/${row.id}`)
+const handleRowClick = (_e: Event, row: TableRow<BillRow>) => {
+  navigateTo(`/purchasing/bills/${row.original.id}`)
 }
 </script>
 
 <template>
-  <div class="space-y-6">
-    <LayoutPageHeader title="Bills" subtitle="Track payments and outstanding balances" />
+  <UDashboardPanel id="bills">
+    <template #header>
+      <UDashboardNavbar title="Bills">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <CommonDataTable :columns="columns" :rows="bills" @row-click="handleRowClick">
-      <template #cell-status="{ value }">
-        <CommonStatusBadge :status="value" />
-      </template>
-      <template #cell-total="{ value }">
-        <span class="font-medium">{{ fmt(value) }}</span>
-      </template>
-      <template #cell-invoiceId="{ value }">
-        <NuxtLink
-          :to="`/purchasing/invoices/${value}`"
-          class="text-primary hover:underline"
-          @click.stop
-        >
-          {{ value }}
-        </NuxtLink>
-      </template>
-    </CommonDataTable>
-  </div>
+    <template #body>
+      <UTable :data="bills" :columns="columns" caption="Bills" @select="handleRowClick">
+        <template #status-cell="{ row }">
+          <CommonStatusBadge :status="row.original.status" />
+        </template>
+        <template #total-cell="{ row }">
+          <span class="font-medium">{{ fmt(row.original.total) }}</span>
+        </template>
+        <template #invoiceId-cell="{ row }">
+          <NuxtLink
+            :to="`/purchasing/invoices/${row.original.invoiceId}`"
+            class="text-primary hover:underline"
+            @click.stop
+          >
+            {{ row.original.invoiceId }}
+          </NuxtLink>
+        </template>
+      </UTable>
+    </template>
+  </UDashboardPanel>
 </template>

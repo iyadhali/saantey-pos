@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft } from 'lucide-vue-next'
+import type { TableColumn } from '@nuxt/ui'
 
 const route = useRoute()
 const billId = computed(() => route.params.id as string)
@@ -78,12 +78,12 @@ const bills: Record<string, Bill> = {
 
 const bill = computed(() => bills[billId.value])
 
-const itemColumns = [
-  { key: 'name', label: 'Item' },
-  { key: 'quantity', label: 'Qty', class: 'text-right' },
-  { key: 'unit', label: 'Unit' },
-  { key: 'cost', label: 'Unit Cost', class: 'text-right' },
-  { key: 'lineTotal', label: 'Total', class: 'text-right' },
+const itemColumns: TableColumn<BillItem & { lineTotal: number }>[] = [
+  { accessorKey: 'name', header: 'Item' },
+  { accessorKey: 'quantity', header: 'Qty', meta: { class: { th: 'text-right', td: 'text-right' } } },
+  { accessorKey: 'unit', header: 'Unit' },
+  { accessorKey: 'cost', header: 'Unit Cost', meta: { class: { th: 'text-right', td: 'text-right' } } },
+  { accessorKey: 'lineTotal', header: 'Total', meta: { class: { th: 'text-right', td: 'text-right' } } },
 ]
 
 const itemRows = computed(() => {
@@ -96,86 +96,87 @@ const itemRows = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Back Link -->
-    <NuxtLink
-      to="/purchasing/bills"
-      class="inline-flex items-center gap-1.5 text-sm text-(--color-muted-foreground) hover:text-(--color-foreground) transition-colors"
-    >
-      <ArrowLeft class="size-4" />
-      Back to Bills
-    </NuxtLink>
-
-    <template v-if="bill">
-      <LayoutPageHeader :title="bill.id" :subtitle="`Bill from ${bill.vendorName}`" />
-
-      <!-- Bill Info -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4 space-y-1">
-          <p class="text-xs text-(--color-muted-foreground) uppercase tracking-wide">Vendor</p>
-          <p class="font-medium">{{ bill.vendorName }}</p>
-        </div>
-        <div class="border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4 space-y-1">
-          <p class="text-xs text-(--color-muted-foreground) uppercase tracking-wide">Invoice</p>
-          <NuxtLink
-            :to="`/purchasing/invoices/${bill.invoiceId}`"
-            class="font-medium text-primary hover:underline"
-          >
-            {{ bill.invoiceId }}
-          </NuxtLink>
-        </div>
-        <div class="border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4 space-y-1">
-          <p class="text-xs text-(--color-muted-foreground) uppercase tracking-wide">Bill Date</p>
-          <p class="font-medium">{{ bill.billDate }}</p>
-        </div>
-        <div class="border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4 space-y-1">
-          <p class="text-xs text-(--color-muted-foreground) uppercase tracking-wide">Status</p>
-          <CommonStatusBadge :status="bill.status" />
-        </div>
-      </div>
-
-      <div class="border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4 space-y-1">
-        <p class="text-xs text-(--color-muted-foreground) uppercase tracking-wide">Due Date</p>
-        <p class="font-medium">{{ bill.dueDate }}</p>
-      </div>
-
-      <!-- Items Table -->
-      <div class="space-y-3">
-        <h2 class="text-lg font-semibold">Items</h2>
-        <CommonDataTable :columns="itemColumns" :rows="itemRows">
-          <template #cell-cost="{ value }">
-            {{ fmt(value) }}
-          </template>
-          <template #cell-lineTotal="{ value }">
-            <span class="font-medium">{{ fmt(value) }}</span>
-          </template>
-        </CommonDataTable>
-      </div>
-
-      <!-- Totals -->
-      <div class="flex justify-end">
-        <div class="w-full max-w-xs border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4 space-y-2">
-          <div class="flex justify-between text-sm">
-            <span class="text-(--color-muted-foreground)">Subtotal</span>
-            <span>{{ fmt(bill.subtotal) }}</span>
-          </div>
-          <div class="flex justify-between text-sm">
-            <span class="text-(--color-muted-foreground)">GST</span>
-            <span>{{ fmt(bill.gst) }}</span>
-          </div>
-          <div class="flex justify-between font-semibold border-t border-(--color-border)/40 pt-2">
-            <span>Total</span>
-            <span>{{ fmt(bill.total) }}</span>
-          </div>
-        </div>
-      </div>
+  <UDashboardPanel id="bill-detail">
+    <template #header>
+      <UDashboardNavbar :title="bill?.id ?? 'Bill'">
+        <template #leading>
+          <UButton icon="i-lucide-arrow-left" variant="ghost" to="/purchasing/bills" />
+        </template>
+      </UDashboardNavbar>
     </template>
 
-    <div v-else class="text-center py-12">
-      <p class="text-(--color-muted-foreground)">Bill not found.</p>
-      <NuxtLink to="/purchasing/bills" class="text-sm text-primary hover:underline mt-2 inline-block">
-        Return to Bills
-      </NuxtLink>
-    </div>
-  </div>
+    <template #body>
+      <template v-if="bill">
+        <p class="text-sm text-muted">Bill from {{ bill.vendorName }}</p>
+
+        <!-- Bill Info -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="border border-(--color-border) bg-(--color-card) rounded-lg p-4 space-y-1">
+            <p class="text-sm text-(--color-muted-foreground) uppercase tracking-wide">Vendor</p>
+            <p class="font-medium">{{ bill.vendorName }}</p>
+          </div>
+          <div class="border border-(--color-border) bg-(--color-card) rounded-lg p-4 space-y-1">
+            <p class="text-sm text-(--color-muted-foreground) uppercase tracking-wide">Invoice</p>
+            <NuxtLink
+              :to="`/purchasing/invoices/${bill.invoiceId}`"
+              class="font-medium text-primary hover:underline"
+            >
+              {{ bill.invoiceId }}
+            </NuxtLink>
+          </div>
+          <div class="border border-(--color-border) bg-(--color-card) rounded-lg p-4 space-y-1">
+            <p class="text-sm text-(--color-muted-foreground) uppercase tracking-wide">Bill Date</p>
+            <p class="font-medium">{{ bill.billDate }}</p>
+          </div>
+          <div class="border border-(--color-border) bg-(--color-card) rounded-lg p-4 space-y-1">
+            <p class="text-sm text-(--color-muted-foreground) uppercase tracking-wide">Status</p>
+            <CommonStatusBadge :status="bill.status" />
+          </div>
+        </div>
+
+        <div class="border border-(--color-border) bg-(--color-card) rounded-lg p-4 space-y-1">
+          <p class="text-sm text-(--color-muted-foreground) uppercase tracking-wide">Due Date</p>
+          <p class="font-medium">{{ bill.dueDate }}</p>
+        </div>
+
+        <!-- Items Table -->
+        <div class="space-y-3">
+          <h2 class="text-lg font-semibold">Items</h2>
+          <UTable :data="itemRows" :columns="itemColumns" caption="Bill items" empty="No items.">
+            <template #cost-cell="{ row }">
+              {{ fmt(row.original.cost) }}
+            </template>
+            <template #lineTotal-cell="{ row }">
+              <span class="font-medium">{{ fmt(row.original.lineTotal) }}</span>
+            </template>
+          </UTable>
+        </div>
+
+        <!-- Totals -->
+        <div class="flex justify-end">
+          <div class="w-full max-w-xs border border-(--color-border) bg-(--color-card) rounded-lg p-4 space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-(--color-muted-foreground)">Subtotal</span>
+              <span>{{ fmt(bill.subtotal) }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-(--color-muted-foreground)">GST</span>
+              <span>{{ fmt(bill.gst) }}</span>
+            </div>
+            <div class="flex justify-between font-semibold border-t border-(--color-border) pt-2">
+              <span>Total</span>
+              <span>{{ fmt(bill.total) }}</span>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <div v-else class="text-center py-12">
+        <p class="text-(--color-muted-foreground)">Bill not found.</p>
+        <NuxtLink to="/purchasing/bills" class="text-sm text-primary hover:underline mt-2 inline-block">
+          Return to Bills
+        </NuxtLink>
+      </div>
+    </template>
+  </UDashboardPanel>
 </template>

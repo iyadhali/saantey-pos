@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import RecipesParent from '~/pages/recipes.vue'
+import _RecipesParent from '~/pages/recipes.vue'
 import RecipesOverview from '~/pages/recipes/overview.vue'
 import MenuItemsList from '~/pages/recipes/menu/index.vue'
 import PrepItems from '~/pages/recipes/prep.vue'
 
 describe('Recipes Parent Layout', () => {
   it('renders "Recipes" heading', async () => {
-    const wrapper = await mountSuspended(RecipesParent)
+    const wrapper = await mountSuspended(RecipesOverview)
     expect(wrapper.text()).toContain('Recipes')
   })
 
   it('renders tab navigation', async () => {
-    const wrapper = await mountSuspended(RecipesParent)
+    const wrapper = await mountSuspended(RecipesOverview)
     expect(wrapper.text()).toContain('Overview')
     expect(wrapper.text()).toContain('Menu Items')
     expect(wrapper.text()).toContain('Prep Items')

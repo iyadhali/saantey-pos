@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { ArrowLeft, Printer } from 'lucide-vue-next'
+import type { TableColumn } from '@nuxt/ui'
+import type { InventoryItem } from '~~/shared/types'
 import { MOCK_POSTINGS, MOCK_INVENTORY } from '~/utils/mockData'
+
+interface CountedItem extends InventoryItem {
+  counted: number | null
+  variance: number | null
+}
 
 const route = useRoute()
 const postingId = computed(() => route.params.id as string)
 
 const posting = computed(() => MOCK_POSTINGS.find((p) => p.id === postingId.value))
 
-// Simulate counted quantities (use onHand as the counted value for demo)
 const countedItems = computed(() =>
   MOCK_INVENTORY.map((item, idx) => ({
     ...item,
@@ -16,13 +21,13 @@ const countedItems = computed(() =>
   })),
 )
 
-const itemColumns = [
-  { key: 'name', label: 'Item' },
-  { key: 'sku', label: 'SKU' },
-  { key: 'unit', label: 'Unit' },
-  { key: 'onHand', label: 'Expected', class: 'text-right' },
-  { key: 'counted', label: 'Counted', class: 'text-right' },
-  { key: 'variance', label: 'Variance', class: 'text-right' },
+const itemColumns: TableColumn<CountedItem>[] = [
+  { accessorKey: 'name', header: 'Item' },
+  { accessorKey: 'sku', header: 'SKU' },
+  { accessorKey: 'unit', header: 'Unit' },
+  { accessorKey: 'onHand', header: 'Expected', meta: { class: { th: 'text-right', td: 'text-right' } } },
+  { accessorKey: 'counted', header: 'Counted', meta: { class: { th: 'text-right', td: 'text-right' } } },
+  { accessorKey: 'variance', header: 'Variance', meta: { class: { th: 'text-right', td: 'text-right' } } },
 ]
 
 const handlePrint = () => {
@@ -31,85 +36,68 @@ const handlePrint = () => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Back Link -->
-    <NuxtLink
-      to="/inventory/posting"
-      class="inline-flex items-center gap-1.5 text-sm text-(--color-muted-foreground) hover:text-(--color-foreground) transition-colors"
-    >
-      <ArrowLeft class="size-4" />
-      Back to Postings
-    </NuxtLink>
-
-    <template v-if="posting">
-      <LayoutPageHeader :title="posting.id" :subtitle="`Inventory count for ${posting.location}`">
-        <template #actions>
-          <button
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-(--color-border) text-sm font-medium hover:bg-(--color-accent) transition-colors"
-            @click="handlePrint"
-          >
-            <Printer class="size-4" />
-            Print
-          </button>
+  <UDashboardPanel id="posting-detail">
+    <template #header>
+      <UDashboardNavbar :title="posting?.id ?? 'Posting'">
+        <template #leading>
+          <UButton icon="i-lucide-arrow-left" variant="ghost" to="/inventory/posting" />
         </template>
-      </LayoutPageHeader>
-
-      <!-- Posting Info -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4 space-y-1">
-          <p class="text-xs text-(--color-muted-foreground) uppercase tracking-wide">Date</p>
-          <p class="font-medium">{{ posting.date }}</p>
-        </div>
-        <div class="border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4 space-y-1">
-          <p class="text-xs text-(--color-muted-foreground) uppercase tracking-wide">Location</p>
-          <p class="font-medium">{{ posting.location }}</p>
-        </div>
-        <div class="border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4 space-y-1">
-          <p class="text-xs text-(--color-muted-foreground) uppercase tracking-wide">Created By</p>
-          <p class="font-medium">{{ posting.createdBy }}</p>
-        </div>
-        <div class="border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4 space-y-1">
-          <p class="text-xs text-(--color-muted-foreground) uppercase tracking-wide">Status</p>
-          <CommonStatusBadge :status="posting.status" />
-        </div>
-      </div>
-
-      <!-- Items Counted Summary -->
-      <div class="border border-(--color-border)/60 bg-(--color-card)/50 rounded-lg p-4">
-        <p class="text-xs text-(--color-muted-foreground) uppercase tracking-wide mb-1">Items Counted</p>
-        <p class="font-medium">{{ posting.itemsCounted }} of {{ posting.totalItems }} items</p>
-      </div>
-
-      <!-- Items Table -->
-      <div class="space-y-3">
-        <h2 class="text-lg font-semibold">Count Details</h2>
-        <CommonDataTable :columns="itemColumns" :rows="countedItems">
-          <template #cell-counted="{ value }">
-            <span v-if="value !== null">{{ value }}</span>
-            <span v-else class="text-(--color-muted-foreground)">--</span>
-          </template>
-          <template #cell-variance="{ value }">
-            <span
-              v-if="value !== null"
-              :class="{
-                'text-red-600': value < 0,
-                'text-emerald-600': value > 0,
-                'text-(--color-muted-foreground)': value === 0,
-              }"
-            >
-              {{ value > 0 ? `+${value}` : value }}
-            </span>
-            <span v-else class="text-(--color-muted-foreground)">--</span>
-          </template>
-        </CommonDataTable>
-      </div>
+        <template v-if="posting" #right>
+          <UButton icon="i-lucide-printer" label="Print" variant="outline" @click="handlePrint" />
+        </template>
+      </UDashboardNavbar>
     </template>
 
-    <div v-else class="text-center py-12">
-      <p class="text-(--color-muted-foreground)">Posting not found.</p>
-      <NuxtLink to="/inventory/posting" class="text-sm text-primary hover:underline mt-2 inline-block">
-        Return to Postings
-      </NuxtLink>
-    </div>
-  </div>
+    <template #body>
+      <template v-if="posting">
+        <p class="text-sm text-muted">Inventory count for {{ posting.location }}</p>
+
+        <!-- Posting Info -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="border border-(--color-border) bg-(--color-card) rounded-lg p-4 space-y-1">
+            <p class="text-sm text-(--color-muted-foreground) uppercase tracking-wide">Date</p>
+            <p class="font-medium">{{ posting.date }}</p>
+          </div>
+          <div class="border border-(--color-border) bg-(--color-card) rounded-lg p-4 space-y-1">
+            <p class="text-sm text-(--color-muted-foreground) uppercase tracking-wide">Location</p>
+            <p class="font-medium">{{ posting.location }}</p>
+          </div>
+          <div class="border border-(--color-border) bg-(--color-card) rounded-lg p-4 space-y-1">
+            <p class="text-sm text-(--color-muted-foreground) uppercase tracking-wide">Created By</p>
+            <p class="font-medium">{{ posting.createdBy }}</p>
+          </div>
+          <div class="border border-(--color-border) bg-(--color-card) rounded-lg p-4 space-y-1">
+            <p class="text-sm text-(--color-muted-foreground) uppercase tracking-wide">Status</p>
+            <CommonStatusBadge :status="posting.status" />
+          </div>
+        </div>
+
+        <div class="border border-(--color-border) bg-(--color-card) rounded-lg p-4">
+          <p class="text-sm text-(--color-muted-foreground) uppercase tracking-wide mb-1">Items Counted</p>
+          <p class="font-medium">{{ posting.itemsCounted }} of {{ posting.totalItems }} items</p>
+        </div>
+
+        <div class="space-y-3">
+          <h2 class="text-lg font-semibold">Count Details</h2>
+          <UTable :data="countedItems" :columns="itemColumns" caption="Count details">
+            <template #counted-cell="{ row }">
+              <span v-if="row.original.counted !== null">{{ row.original.counted }}</span>
+              <span v-else class="text-(--color-muted-foreground)">--</span>
+            </template>
+            <template #variance-cell="{ row }">
+              <span v-if="row.original.variance !== null" :class="{ 'text-red-600': row.original.variance < 0, 'text-emerald-700': row.original.variance > 0, 'text-(--color-muted-foreground)': row.original.variance === 0 }">
+                {{ row.original.variance > 0 ? `+${row.original.variance}` : row.original.variance }}
+              </span>
+              <span v-else class="text-(--color-muted-foreground)">--</span>
+            </template>
+          </UTable>
+        </div>
+      </template>
+
+      <div v-else class="text-center py-12">
+        <p class="text-(--color-muted-foreground)">Posting not found.</p>
+        <NuxtLink to="/inventory/posting" class="text-sm text-primary hover:underline mt-2 inline-block">Return to Postings</NuxtLink>
+      </div>
+    </template>
+  </UDashboardPanel>
 </template>

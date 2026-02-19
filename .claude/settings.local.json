@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm test:*)",
+      "WebSearch",
+      "WebFetch(domain:www.restaurant365.com)",
+      "WebFetch(domain:help.restaurant365.net)"
+    ]
+  }
+}

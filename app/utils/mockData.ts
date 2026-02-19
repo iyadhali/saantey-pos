@@ -33,6 +33,43 @@ export const addMockOrder = (order: Order) => {
   MOCK_ORDERS.unshift(order)
 }
 
+export const updateMockOrderStatus = (id: string, status: Order['status']) => {
+  const order = MOCK_ORDERS.find((o) => o.id === id)
+  if (order) order.status = status
+}
+
+export const updateMockOrder = (id: string, updates: Partial<Order>, items?: OrderItem[]) => {
+  const idx = MOCK_ORDERS.findIndex((o) => o.id === id)
+  if (idx !== -1) Object.assign(MOCK_ORDERS[idx]!, updates)
+  if (items) MOCK_ORDER_ITEMS[id] = items
+}
+
+export const MOCK_RECEIVED_ITEMS: Record<string, OrderItem[]> = {}
+
+export const MOCK_INVOICE_ITEMS: Record<string, OrderItem[]> = {}
+
+export const addMockReceiving = (poId: string, items: OrderItem[], allReceived: boolean) => {
+  MOCK_RECEIVED_ITEMS[poId] = items
+  updateMockOrderStatus(poId, allReceived ? 'Received' : 'Partially Received')
+}
+
+export const addMockInvoice = (invoice: Invoice) => MOCK_INVOICES.unshift(invoice)
+
+export const addMockInvoiceItems = (invoiceId: string, items: OrderItem[]) => {
+  MOCK_INVOICE_ITEMS[invoiceId] = items
+}
+
+export const generateInvoiceNumber = (): string => {
+  const existingNumbers = MOCK_INVOICES.map((inv) => {
+    const parts = inv.id.split('-')
+    const num = parseInt(parts[parts.length - 1] ?? '0', 10)
+    return isNaN(num) ? 0 : num
+  })
+  const maxNum = Math.max(0, ...existingNumbers)
+  const year = new Date().getFullYear()
+  return `INV-${year}-${String(maxNum + 1).padStart(3, '0')}`
+}
+
 export const MOCK_INVOICES: Invoice[] = [
   { id: 'INV-2024-001', vendorId: 'V-001', vendorName: 'Sysco Foods', poNumber: 'PO-8291', invoiceDate: '2024-05-20', deliveryDate: '2024-05-20', status: 'Finalized', subtotal: 1175.00, gst: 70.50, total: 1245.50, updatedAt: '2024-05-20 14:30' },
   { id: 'INV-2024-002', vendorId: 'V-002', vendorName: 'Baldor Specialty', poNumber: 'PO-8292', invoiceDate: '2024-05-21', deliveryDate: '2024-05-21', status: 'Pending', subtotal: 424.53, gst: 25.47, total: 450.00, updatedAt: '2024-05-21 09:15' },

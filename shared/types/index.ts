@@ -4,7 +4,7 @@ export interface Order {
   vendorName: string
   orderDate: string
   deliveryDate: string
-  status: 'Draft' | 'Open' | 'Sent' | 'Needs Receiving' | 'Partially Received' | 'Closed'
+  status: 'Draft' | 'Open' | 'Sent' | 'Needs Receiving' | 'Partially Received' | 'Received' | 'Closed'
   total: number
   itemCount: number
   memo?: string
